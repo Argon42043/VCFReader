@@ -27,7 +27,8 @@ def checkingFile(path):
         if (answer == 'y' or answer == 'Y'):
             return False
         else:
-            print("Quit!")
+            print("You entered that the file name is not correct!")
+            return True
     else:
         print('Filename wrong or file does not exist!')
         return True
@@ -142,11 +143,14 @@ def writePDFFile(txtFile):
     pdf = FPDF(orientation = 'L')
     pdf.add_page()
     pdf.set_font("Arial", size = 15)
-    with open(txtFile, "r") as txtFile:
-        for lines in txtFile:
-            lines = lines.replace("\t", " ")
-            pdf.cell(200, 10, txt = lines, ln = 1, align = 'L')
-    pdf.output("Contacts.pdf")
+    if os.path.exists(txtFile):
+        with open(txtFile, "r") as txtFile:
+            for lines in txtFile:
+                lines = lines.replace("\t", " ")
+                pdf.cell(200, 10, txt = lines, ln = 1, align = 'L')
+        pdf.output("Contacts.pdf")
+    else:
+        print("Text file, which is needed for copying to pdf, was not found!")
 
 def deleteTxtFile(txtFileName):
     """deleting text file
@@ -164,28 +168,49 @@ def main():
     print("Put the contact file in the same directory as the python script!")
 
     loopCondition = True
-    while loopCondition:
-        path, filename = fileName()
-        loopCondition = checkingFile(path)
+    try:
+        while loopCondition:
+            path, filename = fileName()
+            loopCondition = checkingFile(path)
+    except:
+       print("Error during user input or finding file.") 
     
     print("Read VCF file!")
-    contactList = readVCFFile(filename)
+    try:
+        contactList = readVCFFile(filename)
+    except:
+        print("Error during reading VCF file, have you installed the needed packages?")
     print("Sort contacts on list")
-    contactList = sort(contactList)
+    try:
+        contactList = sort(contactList)
+    except:
+        print("Error during sorting elements.")
 
     print("Do you want to write result also in an pdf file? Yes -> Y/y")
-    answer = input()
+    try:
+        answer = input()
+    except:
+        print("Error during user input.")
+
+    print("Write to text file.")
+    try:
+        txtFileName = writeTextFile(contactList)
+    except:
+        print("Error during writing on file.")
+    
     if answer == "y" or answer == "Y":
         loopCondition = False
-        print("Write to text file.")
-        txtFileName = writeTextFile(contactList)
         print("Write to pdf file.")
-        writePDFFile(txtFileName)
+        try:
+            writePDFFile(txtFileName)
+        except:
+            print("Error during writing pdf file")
+
         print("Delete text file")
-        deleteTxtFile(txtFileName)
-    else:
-        print("Write to text file.")
-        writeTextFile(contactList)
+        try:
+            deleteTxtFile(txtFileName)
+        except:
+            print("Error during deleting txt file.")
         
     print("Done!")
 
