@@ -11,8 +11,8 @@ The script is written in python3!
 
 To execute the script you need to install first re, vobject and fpdf.
 
-``` pip install re ```
-``` pip install vobject ```
+``` pip install re ```\
+``` pip install vobject ```\
 ``` pip install fpdf ```
 
 Then anwer the questions until your contact file is converted to a pdf or text file.
