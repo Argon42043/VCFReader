@@ -12,9 +12,9 @@ def fileName():
     print('Which file?')
     filename = input()
     dir = os.getcwd()
-    return str(dir + "/" + str(filename)), filename
+    return str(os.path.join(dir, filename)), filename
 
-def checkingFile(path):
+def checkFile(path):
     """Checking if filename or path is correct.
     Args:
         path (string): path with file name 
@@ -23,17 +23,16 @@ def checkingFile(path):
     """
     print('Is this the correct name of the file? Yes -> Y/y')
     answer = input()
-    if os.path.exists(path):
-        if (answer == 'y' or answer == 'Y'):
-            return False
-        else:
-            print("You entered that the file name is not correct!")
-            return True
-    else:
+    if not os.path.isfile(path):
         print('Filename wrong or file does not exist!')
         return True
+    if (answer == 'y' or answer == 'Y'):
+        return False
+    else:
+        print("You entered that the file name is not correct!")
+        return True
 
-def removingSymbols(String):
+def removeSymbols(String):
     """Remove unnecessary ASCII from string
 
     Args:
@@ -58,6 +57,20 @@ def removingSymbols(String):
     String = String.lstrip()
     return String
 
+def checkLineStart(element):
+    element = str(element).split("\n")
+    count = 0
+    arrDelete = []
+    for line in element:
+        if str(line).startswith("(") or ";;;;" == str(line):
+            arrDelete.append(count)
+            count = count - 1
+        count = count + 1
+    for line in arrDelete:
+        element.pop(line)
+    element = "\n".join(element)
+    return element
+
 def readVCFFile(file):
     """Reading the VCF File and format it.
     Args:
@@ -68,35 +81,50 @@ def readVCFFile(file):
     with open (file, 'r') as fileSource:
         fileText = fileSource.read()
     
-    fileText = re.sub(r'(END:VCARD)', r'\1#', fileText)
+    fileText = re.sub(r'(END:VCARD)', r'\1~', fileText)
 
-    listText = fileText.split('#')
+    listText = fileText.split('~')
 
     informationArray = []
     countInformationArray = 0
 
     for elements in listText:
         if 'BEGIN:VCARD' in elements:
+            if "ADR;X-CUSTOM" in elements:
+                elements = elements.split("\n")
+                count = 0
+                for line in elements:
+                    if "ADR;X-CUSTOM" in line:
+                        elements.pop(count)
+                        print(elements[count + 1])
+                        if elements[count + 1] != 'FN' or elements[count + 1] != 'TEL' or elements[count + 1] != 'EMAIL' or elements[count + 1] != 'N' or elements[count + 1] != 'X-SAMSUNGADR' or elements[count + 1] != 'BDAY' or elements[count + 1] != 'END' or elements[count + 1] != 'ADR' or elements[count + 1] != 'URL' or elements[count + 1] != 'NOTE':
+                            elements.pop(count)
+                    count = count + 1    
+                elements = "\n".join(elements)
+            if "TEL;X-CUSTOM" in elements:
+                elements = re.sub("TEL;X-CUSTOM\([a-z, A-Z, 0-9, \=, \-, \,, \;, \), \:, \\\n]*\):", "TEL;CELL:", elements)
+            elements = checkLineStart(elements)
+            print(elements)
             read = vobject.readOne(elements, allowQP=True)
             count = 1
             readArray = []
             if 'FN' in str(read):
                 FN = str(read.contents['fn'])
-                FN = removingSymbols(FN)
+                FN = removeSymbols(FN)
                 readArray.insert(0, FN)
             if 'TEL' in str(read):
                 TEL = str(read.contents['tel'])
-                TEL = removingSymbols(TEL)
+                TEL = removeSymbols(TEL)
                 readArray.insert(count, TEL)
                 count = count + 1
             if 'EMAIL' in str(read):
                 EMAIL = str(read.contents['email'])
-                EMAIL = removingSymbols(EMAIL)
+                EMAIL = removeSymbols(EMAIL)
                 readArray.insert(count, EMAIL)
                 count = count + 1
             if 'BDAY' in str(read):
                 BDAY = str(read.contents['bday'])
-                BDAY = removingSymbols(BDAY)
+                BDAY = removeSymbols(BDAY)
                 readArray.insert(count, BDAY)
                 count = count + 1
 
@@ -171,7 +199,7 @@ def main():
     try:
         while loopCondition:
             path, filename = fileName()
-            loopCondition = checkingFile(path)
+            loopCondition = checkFile(path)
     except:
        print("Error during user input or finding file.") 
     
