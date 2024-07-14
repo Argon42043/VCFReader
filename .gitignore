@@ -3,3 +3,10 @@ Files for testing:
 *.vcf
 *.txt
 *.pdf
+
+bin/
+lib/
+lib/
+lib64/
+*.cfg
+lib64

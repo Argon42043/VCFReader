@@ -49,6 +49,9 @@ def removeSymbols(String):
         String = String.replace("EMAIL", "")
     if "BDAY" in String:
         String = String.replace("BDAY", "")
+    if "ADR" in String:
+        String = String.replace("ADR", "")
+        String = String.replace("\\n", "")
     if "CHARSET" in String:
         String = String.replace("CHARSET", "")
     if "UTF-8" in String:
@@ -127,7 +130,13 @@ def readVCFFile(file):
                 BDAY = removeSymbols(BDAY)
                 readArray.insert(count, BDAY)
                 count = count + 1
+            if 'ADR' in str(read) and not 'X-SAMSUNGADR' in str(read):
+                ADR = str(read.contents['adr'])
+                ADR = removeSymbols(ADR)
+                readArray.insert(count, ADR)
+                count = count + 1
 
+            print(readArray)
             countInformationArray = countInformationArray + 1
             informationArray.insert(countInformationArray, readArray)
     return informationArray
@@ -175,7 +184,7 @@ def writePDFFile(txtFile):
         with open(txtFile, "r") as txtFile:
             for lines in txtFile:
                 lines = lines.replace("\t", " ")
-                pdf.cell(200, 10, txt = lines, ln = 1, align = 'L')
+                pdf.cell(50, 10, txt = lines, border=30, ln = 2, align = 'L')
         pdf.output("Contacts.pdf")
     else:
         print("Text file, which is needed for copying to pdf, was not found!")
@@ -204,10 +213,10 @@ def main():
        print("Error during user input or finding file.") 
     
     print("Read VCF file!")
-    try:
-        contactList = readVCFFile(filename)
-    except:
-        print("Error during reading VCF file, have you installed the needed packages?")
+    #try:
+    contactList = readVCFFile(filename)
+    #except:
+    #    print("Error during reading VCF file, have you installed the needed packages?")
     print("Sort contacts on list")
     try:
         contactList = sort(contactList)
@@ -243,4 +252,7 @@ def main():
     print("Done!")
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Stopping programm!")
